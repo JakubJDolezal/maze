@@ -282,7 +282,7 @@ class BiasedGoody(Goody):
             self.RelYPos=self.RelYPos-1
 
     def foundYou(self):
-        self.mapHunting=[[10 for x in range(w)] for y in range(h)]
+        self.mapHunting=[[10 for x in range(50)] for y in range(50)]
         self.recursivePathing(self.mapPosition[0]+self.RelXPos, self.mapPosition[1]+self.RelYPos, -1,0,0)
         pass                  
         
