@@ -76,15 +76,13 @@ class BiasedGoody(Goody):
                             Move=self.flee(obstruction)
                             self.betweenPings=abs(self.baddy_position.x)+abs(self.baddy_position.y)-2
                         else:
-                                Move=self.go_to_each_other(obstruction)
+                            Move=self.go_to_each_other(obstruction)
                 else:
                     if (self.time>=self.betweenPings):
                         self.time=0
                         Move=PING
-                        print("PINGUUUUU")
             if self.madeMap[self.mapPosition[0]][self.mapPosition[1]]>15 and self.madeMap[self.mapPosition[0]][self.mapPosition[1]]<50  and Move!=PING:
                 Move=self.moveAlongWall(obstruction)
-                print("WALLLLEEE")
             if self.madeMap[self.mapPosition[0]][self.mapPosition[1]]>50:
                 self.randWalkerMode=self.maxRandWalkerMode
                 
@@ -100,14 +98,14 @@ class BiasedGoody(Goody):
         self.nonRandWalkerMode=self.nonRandWalkerMode+1
         if self.randWalkerMode==0:
             self.time=self.betweenPings
-            self.nonRandWalkerMode=self.maxRandWalkerMode    
+            self.nonRandWalkerMode=self.maxRandWalkerMode  
+        pass
             
 
     def get_player_relative_position(self, _ping_response):
 #    	''' extracts where the other player is from the _ping_response input using is instance to
 #    	distinguish between goodie and baddie'''
         if _ping_response is not None:
-            print("Analysis")
             self.time=0
             for player, position in _ping_response.items():
                 if isinstance(player, Goody):
@@ -120,7 +118,6 @@ class BiasedGoody(Goody):
                     self.betweenPings=max(abs(self.RelXPos)+abs(self.RelYPos),5)
                     if abs(self.oldPosX)+abs(self.oldPosY)>=abs(self.goodyPosition.x)+abs(self.goodyPosition.y):
                         self.randWalkerMode=self.maxRandWalkerMode
-                        print("Random Mode Activated")
                         self.maxRandWalkerMode=self.maxRandWalkerMode+5
                         self.nonRandWalkerMode=0
                 else:
@@ -159,22 +156,18 @@ class BiasedGoody(Goody):
             if decision>abs(self.RelXPos)/(abs(self.RelXPos)+abs(self.RelYPos)+1):
                 if self.xDir==True and RIGHT in self.possibilities:
                     Move=RIGHT
-                    print("Right")
                     break
                 else:
                     if LEFT in self.possibilities:
                         Move=LEFT
-                        print("LEft")
                         break
             else:
                 if self.yDir==True and UP in self.possibilities:
                     Move=UP                    
-                    print("UP")
                     break
                 else:
                     if DOWN in self.possibilities:
                         Move=DOWN
-                        print("DOWN")
                         break
             count=count+1
             if (count>6):
@@ -246,7 +239,6 @@ class BiasedGoody(Goody):
         if self.madeMap[self.mapPosition[0]-1][self.mapPosition[1]]==0:
             self.possibilities.remove(LEFT)
         
-        self.oldMap=self.madeMap
         
      
     def moveAlongWall(self, obstruction):
