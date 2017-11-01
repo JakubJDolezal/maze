@@ -35,51 +35,72 @@ class BiasedGoody(Goody):
         self.yDir=False
         self.badXDir=False
         self.badYDir=False
-        self.oldPosX=1000
-        self.oldPosY=1000
+        self.oldPosX=5
+        self.oldPosY=5
         self.RelXPos=0
         self.RelYPos=0
         self.randWalkerMode=0
-        self.maxRandWalkerMode=10
+        self.nonRandWalkerMode=10
+        self.maxRandWalkerMode=5
         self.goodyPosition=0
         self.baddy_position=0
+        w, h = 50, 50;
+        self.madeMap = [[1 for x in range(w)] for y in range(h)]
+        self.mapHunting=[[10 for x in range(w)] for y in range(h)]
+        self.possibilities=0
+        self.mapPosition=[20,20]
+        self.foundHim=False
+        self.maxDis=-1000
+        self.reached=False
 
     def take_turn(self, obstruction, _ping_response):
 #     ping every 10 turns and walk towards each other otherwise, if distance is same for long time walk randomly
-        possibilities = [direction for direction in [UP, DOWN, LEFT, RIGHT] if not obstruction[direction]]
-        Move=random.choice(possibilities)
-        self.time=self.time+random.randint(0,1)
-        if self.randWalkerMode>0:
-            print("walk the walk")
-            self.randWalkerMode=self.randWalkerMode-1
-            if self.randWalkerMode==0:
-                self.time=self.betweenPings
-        else:
-            self.get_player_relative_position(_ping_response)
-            if isinstance( self.baddy_position, int)==False:
-                print("Hey")
-                print (abs(self.baddy_position.x+self.baddy_position.y))
-                if (self.time>=self.betweenPings):
-                    self.time=0
-                    Move=PING
-                    print("PINGUUUUU")
-                print("Approach")   
-                if (Move!=PING):
-                    if (abs(self.baddy_position.x)+abs(self.baddy_position.y))<4 and abs(self.RelXPos)+abs(self.RelYPos)>2:
-        #                FLEEEEEE
-                        print(self.baddy_position.x+self.baddy_position.y)
-                        print("Fleeee")
-                        Move=self.flee(obstruction)
-                        self.betweenPings=abs(self.baddy_position.x)+abs(self.baddy_position.y)-2
-                    else:
-                            Move=self.go_to_each_other(obstruction)
+        self.get_player_relative_position(_ping_response)
+    
+        if self.foundHim==False:
+            self.nonRandWalkerMode=self.nonRandWalkerMode-1
+            self.mapMaking(obstruction)
+            Move=random.choice(self.possibilities)
+            self.time=self.time+random.randint(0,1)
+            if self.randWalkerMode>0 and self.nonRandWalkerMode<0:
+                print("walk the walk")
+                self.randWalkerMode=self.randWalkerMode-1
+                self.nonRandWalkerMode=self.nonRandWalkerMode+1
+                if self.randWalkerMode==0:
+                    self.time=self.betweenPings
+                    self.nonRandWalkerMode=self.maxRandWalkerMode
             else:
-                if (self.time>=self.betweenPings):
-                    self.time=0
-                    Move=PING
-                    print("PINGUUUUU")
+                if isinstance( self.baddy_position, int)==False:
+                    print (abs(self.baddy_position.x+self.baddy_position.y))
+                    if (self.time>self.betweenPings):
+                        self.time=0
+                        Move=PING
+                        print("PINGUUUUU")
+                    print("Approach")   
+                    if (Move!=PING):
+                        if (abs(self.baddy_position.x)+abs(self.baddy_position.y))<5 and abs(self.RelXPos)+abs(self.RelYPos)>2:
+                            print(self.baddy_position.x+self.baddy_position.y)
+                            print("Fleeee")
+                            Move=self.flee(obstruction)
+                            self.betweenPings=abs(self.baddy_position.x)+abs(self.baddy_position.y)-2
+                        else:
+                                Move=self.go_to_each_other(obstruction)
+                else:
+                    if (self.time>=self.betweenPings):
+                        self.time=0
+                        Move=PING
+                        print("PINGUUUUU")
+            if self.madeMap[self.mapPosition[0]][self.mapPosition[1]]>15 and self.madeMap[self.mapPosition[0]][self.mapPosition[1]]<50  and Move!=PING:
+                Move=self.moveAlongWall(obstruction)
+                print("WALLLLEEE")
+            if self.madeMap[self.mapPosition[0]][self.mapPosition[1]]>50:
+                self.randWalkerMode=self.maxRandWalkerMode
                 
-                
+        else:
+            Move=self.foundPath()
+            
+        self.updatePosition(Move)        
+       
         return Move
             
         
@@ -93,18 +114,22 @@ class BiasedGoody(Goody):
             for player, position in _ping_response.items():
                 if isinstance(player, Goody):
                     if isinstance( self.goodyPosition, int )==False:
-                        self.oldPosX=self.goodyPosition.x
-                        self.oldPosY=self.goodyPosition.y
+                        self.oldPosX=round(self.goodyPosition.x)
+                        self.oldPosY=round(self.goodyPosition.y)
                     self.goodyPosition = position
                     self.RelXPos=position.x
                     self.RelYPos=position.y
-                    self.betweenPings=abs(self.RelXPos)+abs(self.RelYPos)
-                    if self.oldPosX>=self.goodyPosition.x and self.oldPosX>=self.goodyPosition.y:
+                    self.betweenPings=max(abs(self.RelXPos)+abs(self.RelYPos),5)
+                    if abs(self.oldPosX)+abs(self.oldPosY)>=abs(self.goodyPosition.x)+abs(self.goodyPosition.y):
                         self.randWalkerMode=self.maxRandWalkerMode
                         print("Random Mode Activated")
                         self.maxRandWalkerMode=self.maxRandWalkerMode+5
+                        self.nonRandWalkerMode=0
                 else:
-                    self.baddy_position = position                  
+                    self.baddy_position = position
+            if self.madeMap[self.mapPosition[0]+self.RelXPos][self.mapPosition[1]+self.RelYPos]!=1:
+                self.foundHim=True
+                self.foundYou()
                     
         if isinstance( self.goodyPosition, int )==False:
             if self.RelXPos>0:
@@ -128,34 +153,29 @@ class BiasedGoody(Goody):
     
     
     def go_to_each_other(self, obstruction): 
-        possibilities = [direction for direction in [UP, DOWN, LEFT, RIGHT] if not obstruction[direction]]
-        Move=random.choice(possibilities)
+        Move=random.choice(self.possibilities)
         towards=False
         count=0
         while towards==False:
             decision=random.random();
-            if decision>abs(self.RelXPos)/(abs(self.RelXPos)+abs(self.RelYPos)):
-                if self.xDir==True and obstruction[RIGHT]==False:
+            if decision>abs(self.RelXPos)/(abs(self.RelXPos)+abs(self.RelYPos)+1):
+                if self.xDir==True and RIGHT in self.possibilities:
                     Move=RIGHT
                     print("Right")
-                    self.RelXPos=self.RelXPos-1
                     break
                 else:
-                    if obstruction[LEFT]==False:
+                    if LEFT in self.possibilities:
                         Move=LEFT
                         print("LEft")
-                        self.RelXPos=self.RelXPos+1
                         break
             else:
-                if self.yDir==True and obstruction[UP]==False:
-                    Move=UP
-                    self.RelYPos=self.RelYPos-1
+                if self.yDir==True and UP in self.possibilities:
+                    Move=UP                    
                     print("UP")
                     break
                 else:
-                    if obstruction[DOWN]==False:
+                    if DOWN in self.possibilities:
                         Move=DOWN
-                        self.RelYPos=self.RelYPos+1
                         print("DOWN")
                         break
             count=count+1
@@ -165,33 +185,143 @@ class BiasedGoody(Goody):
         return Move
 
     def flee(self,obstruction):
-        possibilities = [direction for direction in [UP, DOWN, LEFT, RIGHT] if not obstruction[direction]]
-        Move=random.choice(possibilities)
+        Move=random.choice(self.possibilities)
         towards=False
         count=0
         while towards==False:
             decision=random.random();
             if decision>abs(self.baddy_position.x)/(abs(self.baddy_position.x)+abs(self.baddy_position.y)+1):
-                if self.badXDir==False and obstruction[RIGHT]==False:
+                if self.badXDir==False and RIGHT in self.possibilities:
                     Move=RIGHT
-                    self.RelXPos=self.RelXPos+1
                     break
                 else:
-                    if obstruction[LEFT]==False:
+                    if LEFT in self.possibilities:
                         Move=LEFT
-                        self.RelXPos=self.RelXPos-1
                         break
             else:
-                if self.badYDir==True and obstruction[UP]==False:
+                if self.badYDir==True and DOWN in self.possibilities:
                     Move=DOWN
-                    self.RelYPos=self.RelYPos+1
                     break
                 else:
-                    if obstruction[DOWN]==False:
+                    if UP in self.possibilities:
                         Move=UP
-                        self.RelYPos=self.RelYPos-1
                         break
             count=count+1
             if count>6:
                 break
         return Move
+    
+    def mapMaking(self, obstruction):
+        surrounded=0
+        self.BeenLeft=self.madeMap[self.mapPosition[0]][self.mapPosition[1]-1]
+        self.BeenRight=self.madeMap[self.mapPosition[0]][self.mapPosition[1]+1]
+        self.BeenUp=self.madeMap[self.mapPosition[0]+1][self.mapPosition[1]]
+        self.BeenDown=self.madeMap[self.mapPosition[0]-1][self.mapPosition[1]]
+        
+        if obstruction[UP]==True or self.BeenRight==0:
+            self.madeMap[self.mapPosition[0]][self.mapPosition[1]+1]=0
+            surrounded=surrounded+1
+        if obstruction[DOWN]==True or self.BeenLeft==0:
+            self.madeMap[self.mapPosition[0]][self.mapPosition[1]-1]=0
+            surrounded=surrounded+1
+        if obstruction[RIGHT]==True or self.BeenUp==0:
+            self.madeMap[self.mapPosition[0]+1][self.mapPosition[1]]=0
+            surrounded=surrounded+1
+        if obstruction[LEFT]==True or self.BeenDown==0:
+            self.madeMap[self.mapPosition[0]-1][self.mapPosition[1]]=0
+            surrounded=surrounded+1
+            
+        if surrounded==3:
+            self.madeMap[self.mapPosition[0]][self.mapPosition[1]]=0
+                        
+        if self.madeMap[self.mapPosition[0]][self.mapPosition[1]]!=0:
+            print(self.madeMap[self.mapPosition[0]][self.mapPosition[1]])
+            self.madeMap[self.mapPosition[0]][self.mapPosition[1]]=self.madeMap[self.mapPosition[0]][self.mapPosition[1]]+1
+                        
+        self.possibilities = [direction for direction in [UP, DOWN, LEFT, RIGHT]]
+        if self.madeMap[self.mapPosition[0]][self.mapPosition[1]+1]==0:
+            self.possibilities.remove(UP)
+        if self.madeMap[self.mapPosition[0]][self.mapPosition[1]-1]==0:
+            self.possibilities.remove(DOWN)
+        if self.madeMap[self.mapPosition[0]+1][self.mapPosition[1]]==0:
+            self.possibilities.remove(RIGHT)
+        if self.madeMap[self.mapPosition[0]-1][self.mapPosition[1]]==0:
+            self.possibilities.remove(LEFT)
+        
+        self.oldMap=self.madeMap
+        
+     
+    def moveAlongWall(self, obstruction):
+        Move=random.choice(self.possibilities)
+        sum=(self.BeenDown+self.BeenUp+self.BeenRight+self.BeenLeft)   
+        decision=random.random()*sum
+        if decision<(sum-2*self.BeenRight-abs(self.RelXPos)) and obstruction[RIGHT]==False:
+             Move=RIGHT
+        else:
+            if decision<(sum-2*self.BeenLeft+abs(self.RelXPos)) and obstruction[LEFT]==False:
+                Move=LEFT
+            else:
+                if decision<(sum-2*self.BeenUp-abs(self.RelYPos)) and obstruction[UP]==False:
+                    Move=UP
+                else:
+                    if decision<(sum-2*self.BeenDown+abs(self.RelYPos)) and obstruction[DOWN]==False:
+                        Move=DOWN
+        return Move
+        
+    def updatePosition(self,Move):
+        if Move==RIGHT:
+            self.mapPosition[0]=self.mapPosition[0]+1
+            self.RelXPos=self.RelXPos+1
+        if Move==LEFT:
+            self.RelXPos=self.RelXPos-1
+            self.mapPosition[0]=self.mapPosition[0]-1
+        if Move==UP:
+            self.RelYPos=self.RelYPos+1
+            self.mapPosition[1]=self.mapPosition[1]+1
+        if Move==DOWN:
+            self.mapPosition[1]=self.mapPosition[1]-1
+            self.RelYPos=self.RelYPos-1
+
+    def foundYou(self):
+        self.recursivePathing(self.mapPosition[0]+self.RelXPos, self.mapPosition[1]+self.RelYPos, -1,0,0)
+        pass                  
+        
+    def recursivePathing(self, i, j, number, l, k):
+        if number<self.maxDis:
+            pass
+        if (self.madeMap[i][j]!=0 and self.madeMap[i][j]!=1) and ((self.mapHunting[i][j]<number and self.mapHunting[i][j]<0) or (self.mapHunting[i][j]>0)):
+            self.mapHunting[i][j]=number
+            if i==self.mapPosition[0] and j==self.mapPosition[1]:
+                self.maxDis=number
+                pass
+            i1=1
+            if i1!=l:
+                self.recursivePathing(i+i1,j, number-1,-i1,0)
+            i1=-1
+            if i1!=l:
+                self.recursivePathing(i+i1,j, number-1,-i1,0)
+            j1=1
+            if j1!=k:
+                self.recursivePathing(i,j+j1, number-1,0, -j1)
+            j1=-1
+            if j1!=k:
+                self.recursivePathing(i,j+j1, number-1,0, -j1)
+                    
+    def foundPath(self):
+        Move=None
+        print(self.mapHunting[self.mapPosition[0]][self.mapPosition[1]])
+        print(self.madeMap)
+        if self.mapHunting[self.mapPosition[0]][self.mapPosition[1]+1]==(self.mapHunting[self.mapPosition[0]][self.mapPosition[1]]+1):
+            Move=UP
+        if self.mapHunting[self.mapPosition[0]][self.mapPosition[1]-1]==(self.mapHunting[self.mapPosition[0]][self.mapPosition[1]]+1):
+            Move=DOWN
+        if self.mapHunting[self.mapPosition[0]+1][self.mapPosition[1]]==(self.mapHunting[self.mapPosition[0]][self.mapPosition[1]]+1):
+            Move=RIGHT
+        if self.mapHunting[self.mapPosition[0]-1][self.mapPosition[1]]==(self.mapHunting[self.mapPosition[0]][self.mapPosition[1]]+1):
+            Move=LEFT
+        if self.mapHunting[self.mapPosition[0]][self.mapPosition[1]]==-1 or self.reached==True:
+            Move=PING
+            self.reached=True
+            self.foundHim=False
+        return Move
+        
