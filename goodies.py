@@ -46,11 +46,11 @@ class BiasedGoody(Goody):
         self.maxRandWalkerMode=5
         self.goodyPosition=0
         self.baddy_position=0
-        self.w, self.h = 1000, 1000;
+        self.w, self.h = 4000, 4000;
         self.madeMap = [[1 for x in range(self.w)] for y in range(self.h)]
         self.mapHunting=[[10 for x in range(self.w)] for y in range(self.h)]
         self.possibilities=0
-        self.mapPosition=[500,500]
+        self.mapPosition=[2000,2000]
         self.foundHim=False
         self.maxDis=-1000
         self.reached=False
