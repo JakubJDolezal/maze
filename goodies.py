@@ -286,10 +286,11 @@ class BiasedGoody(Goody):
         self.recursivePathing(self.mapPosition[0]+self.RelXPos, self.mapPosition[1]+self.RelYPos, -1,0,0)
         pass                  
         
-    def recursivePathing(self, i, j, number, l, k):
+    def recursivePathing(self, i, j, number, l, k): 
+#        Recursively creates path
         if number<self.maxDis:
             pass
-        if (self.madeMap[i][j]!=0 and self.madeMap[i][j]!=1) and ((self.mapHunting[i][j]<number and self.mapHunting[i][j]<0) or (self.mapHunting[i][j]>0)):
+        if (self.madeMap[i][j]!=0 and self.madeMap[i][j]!=1) and ((self.mapHunting[i][j]<number or self.mapHunting[i][j]==10) or (self.mapHunting[i][j]>0)):
             self.mapHunting[i][j]=number
             if i==self.mapPosition[0] and j==self.mapPosition[1]:
                 self.maxDis=number
@@ -310,7 +311,7 @@ class BiasedGoody(Goody):
     def foundPath(self):
         Move=None
         print(self.mapHunting[self.mapPosition[0]][self.mapPosition[1]])
-        print(self.madeMap)
+        print(self.mapHunting)
         if self.mapHunting[self.mapPosition[0]][self.mapPosition[1]+1]==(self.mapHunting[self.mapPosition[0]][self.mapPosition[1]]+1):
             Move=UP
         if self.mapHunting[self.mapPosition[0]][self.mapPosition[1]-1]==(self.mapHunting[self.mapPosition[0]][self.mapPosition[1]]+1):
