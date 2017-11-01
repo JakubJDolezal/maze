@@ -56,31 +56,23 @@ class BiasedGoody(Goody):
     def take_turn(self, obstruction, _ping_response):
 #     ping every 10 turns and walk towards each other otherwise, if distance is same for long time walk randomly
         self.get_player_relative_position(_ping_response)
-    
+        self.time=self.time+random.randint(0,1)
+        
         if self.foundHim==False:
             self.nonRandWalkerMode=self.nonRandWalkerMode-1
             self.mapMaking(obstruction)
             Move=random.choice(self.possibilities)
-            self.time=self.time+random.randint(0,1)
+            
             if self.randWalkerMode>0 and self.nonRandWalkerMode<0:
-                print("walk the walk")
-                self.randWalkerMode=self.randWalkerMode-1
-                self.nonRandWalkerMode=self.nonRandWalkerMode+1
-                if self.randWalkerMode==0:
-                    self.time=self.betweenPings
-                    self.nonRandWalkerMode=self.maxRandWalkerMode
+               self.random_walker_mode() 
             else:
                 if isinstance( self.baddy_position, int)==False:
                     print (abs(self.baddy_position.x+self.baddy_position.y))
                     if (self.time>self.betweenPings):
                         self.time=0
-                        Move=PING
-                        print("PINGUUUUU")
-                    print("Approach")   
+                        Move=PING  
                     if (Move!=PING):
                         if (abs(self.baddy_position.x)+abs(self.baddy_position.y))<5 and abs(self.RelXPos)+abs(self.RelYPos)>2:
-                            print(self.baddy_position.x+self.baddy_position.y)
-                            print("Fleeee")
                             Move=self.flee(obstruction)
                             self.betweenPings=abs(self.baddy_position.x)+abs(self.baddy_position.y)-2
                         else:
@@ -102,8 +94,14 @@ class BiasedGoody(Goody):
         self.updatePosition(Move)        
        
         return Move
+   
+    def random_walker_mode(self):
+        self.randWalkerMode=self.randWalkerMode-1
+        self.nonRandWalkerMode=self.nonRandWalkerMode+1
+        if self.randWalkerMode==0:
+            self.time=self.betweenPings
+            self.nonRandWalkerMode=self.maxRandWalkerMode    
             
-        
 
     def get_player_relative_position(self, _ping_response):
 #    	''' extracts where the other player is from the _ping_response input using is instance to
@@ -269,6 +267,7 @@ class BiasedGoody(Goody):
         return Move
         
     def updatePosition(self,Move):
+#        
         if Move==RIGHT:
             self.mapPosition[0]=self.mapPosition[0]+1
             self.RelXPos=self.RelXPos+1
@@ -283,6 +282,7 @@ class BiasedGoody(Goody):
             self.RelYPos=self.RelYPos-1
 
     def foundYou(self):
+        self.mapHunting=[[10 for x in range(w)] for y in range(h)]
         self.recursivePathing(self.mapPosition[0]+self.RelXPos, self.mapPosition[1]+self.RelYPos, -1,0,0)
         pass                  
         
@@ -310,7 +310,6 @@ class BiasedGoody(Goody):
                     
     def foundPath(self):
         Move=None
-        print(self.mapHunting[self.mapPosition[0]][self.mapPosition[1]])
         print(self.mapHunting)
         if self.mapHunting[self.mapPosition[0]][self.mapPosition[1]+1]==(self.mapHunting[self.mapPosition[0]][self.mapPosition[1]]+1):
             Move=UP
