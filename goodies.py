@@ -46,11 +46,11 @@ class BiasedGoody(Goody):
         self.maxRandWalkerMode=5
         self.goodyPosition=0
         self.baddy_position=0
-        w, h = 50, 50;
-        self.madeMap = [[1 for x in range(w)] for y in range(h)]
-        self.mapHunting=[[10 for x in range(w)] for y in range(h)]
+        self.w, self.h = 1000, 1000;
+        self.madeMap = [[1 for x in range(self.w)] for y in range(self.h)]
+        self.mapHunting=[[10 for x in range(self.w)] for y in range(self.h)]
         self.possibilities=0
-        self.mapPosition=[20,20]
+        self.mapPosition=[500,500]
         self.foundHim=False
         self.maxDis=-1000
         self.reached=False
@@ -127,6 +127,7 @@ class BiasedGoody(Goody):
                     self.baddy_position = position
                     self.badXPos=position.x
                     self.badYPos=position.y
+                    
             if self.madeMap[self.mapPosition[0]+self.RelXPos][self.mapPosition[1]+self.RelYPos]!=1:
                 self.foundHim=True
                 self.foundYou()
@@ -283,7 +284,7 @@ class BiasedGoody(Goody):
             self.badYPos=self.badYPos-1
 
     def foundYou(self):
-        self.mapHunting=[[10 for x in range(50)] for y in range(50)]
+        self.mapHunting=[[10 for x in range(self.w)] for y in range(self.h)]
         self.recursivePathing(self.mapPosition[0]+self.RelXPos, self.mapPosition[1]+self.RelYPos, -1,0,0)
         pass                  
         
@@ -323,6 +324,6 @@ class BiasedGoody(Goody):
             Move=PING
             self.reached=True
             self.foundHim=False
-            self.sleepCounting=self.sleepcounting+1
+            self.sleepCounting=self.sleepCounting+1
         return Move
         
