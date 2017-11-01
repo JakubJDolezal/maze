@@ -37,8 +37,10 @@ class BiasedGoody(Goody):
         self.badYDir=False
         self.oldPosX=5
         self.oldPosY=5
-        self.RelXPos=0
-        self.RelYPos=0
+        self.RelXPos=5
+        self.RelYPos=5
+        self.badXPos=7
+        self.badYPos=7
         self.randWalkerMode=0
         self.nonRandWalkerMode=10
         self.maxRandWalkerMode=5
@@ -67,12 +69,12 @@ class BiasedGoody(Goody):
                self.random_walker_mode() 
             else:
                 if isinstance( self.baddy_position, int)==False:
-                    print (abs(self.baddy_position.x+self.baddy_position.y))
+
                     if (self.time>self.betweenPings):
                         self.time=0
                         Move=PING  
                     if (Move!=PING):
-                        if (abs(self.baddy_position.x)+abs(self.baddy_position.y))<5 and abs(self.RelXPos)+abs(self.RelYPos)>2:
+                        if (abs(self.badYPos)+abs(self.badXPos))<5 and abs(self.RelXPos)+abs(self.RelYPos)>2:
                             Move=self.flee(obstruction)
                             self.betweenPings=abs(self.baddy_position.x)+abs(self.baddy_position.y)-2
                         else:
@@ -122,6 +124,8 @@ class BiasedGoody(Goody):
                         self.nonRandWalkerMode=0
                 else:
                     self.baddy_position = position
+                    self.badXPos=position.x
+                    self.badYPos=position.y
             if self.madeMap[self.mapPosition[0]+self.RelXPos][self.mapPosition[1]+self.RelYPos]!=1:
                 self.foundHim=True
                 self.foundYou()
@@ -137,11 +141,11 @@ class BiasedGoody(Goody):
                 self.yDir=False
                 
         if isinstance( self.baddy_position, int )==False:
-            if self.baddy_position.x>0:
+            if self.badXPos>0:
                 self.badXDir=True
             else:
                 self.badXDir=False
-            if self.baddy_position.y>0:
+            if self.badYPos>0:
                 self.badYDir=True
             else:
                 self.badYDir=False
@@ -226,7 +230,6 @@ class BiasedGoody(Goody):
             self.madeMap[self.mapPosition[0]][self.mapPosition[1]]=0
                         
         if self.madeMap[self.mapPosition[0]][self.mapPosition[1]]!=0:
-            print(self.madeMap[self.mapPosition[0]][self.mapPosition[1]])
             self.madeMap[self.mapPosition[0]][self.mapPosition[1]]=self.madeMap[self.mapPosition[0]][self.mapPosition[1]]+1
                         
         self.possibilities = [direction for direction in [UP, DOWN, LEFT, RIGHT]]
@@ -263,15 +266,20 @@ class BiasedGoody(Goody):
         if Move==RIGHT:
             self.mapPosition[0]=self.mapPosition[0]+1
             self.RelXPos=self.RelXPos+1
+            self.badXPos=self.badXPos+1
+            
         if Move==LEFT:
             self.RelXPos=self.RelXPos-1
+            self.badXPos=self.badXPos-1
             self.mapPosition[0]=self.mapPosition[0]-1
         if Move==UP:
             self.RelYPos=self.RelYPos+1
+            self.badYPos=self.badYPos+1
             self.mapPosition[1]=self.mapPosition[1]+1
         if Move==DOWN:
             self.mapPosition[1]=self.mapPosition[1]-1
             self.RelYPos=self.RelYPos-1
+            self.badYPos=self.badYPos-1
 
     def foundYou(self):
         self.mapHunting=[[10 for x in range(50)] for y in range(50)]
@@ -301,8 +309,7 @@ class BiasedGoody(Goody):
                 self.recursivePathing(i,j+j1, number-1,0, -j1)
                     
     def foundPath(self):
-        Move=None
-        print(self.mapHunting)
+        Move=random.choice(self.possibilities)
         if self.mapHunting[self.mapPosition[0]][self.mapPosition[1]+1]==(self.mapHunting[self.mapPosition[0]][self.mapPosition[1]]+1):
             Move=UP
         if self.mapHunting[self.mapPosition[0]][self.mapPosition[1]-1]==(self.mapHunting[self.mapPosition[0]][self.mapPosition[1]]+1):
