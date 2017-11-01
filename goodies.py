@@ -54,6 +54,7 @@ class BiasedGoody(Goody):
         self.foundHim=False
         self.maxDis=-1000
         self.reached=False
+        self.sleepCounting=0
 
     def take_turn(self, obstruction, _ping_response):
 #     ping every 10 turns and walk towards each other otherwise, if distance is same for long time walk randomly
@@ -318,9 +319,10 @@ class BiasedGoody(Goody):
             Move=RIGHT
         if self.mapHunting[self.mapPosition[0]-1][self.mapPosition[1]]==(self.mapHunting[self.mapPosition[0]][self.mapPosition[1]]+1):
             Move=LEFT
-        if self.mapHunting[self.mapPosition[0]][self.mapPosition[1]]==-1 or self.reached==True:
+        if (self.mapHunting[self.mapPosition[0]][self.mapPosition[1]]==-1 or self.reached==True) and self.sleepCounting<10:
             Move=PING
             self.reached=True
             self.foundHim=False
+            self.sleepCounting=self.sleepcounting+1
         return Move
         
