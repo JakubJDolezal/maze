@@ -324,4 +324,26 @@ class BiasedGoody(Goody):
             self.reached=True
             self.foundHim=False
         return Move
+
+import maze
+import builtins
+from maze import Game
+#import example
+class SneakyGoody(Goody):
+	''' breaks the game ;) '''
+	def __init__(self):
+		maze.Game.do_round = MySneakyGame.do_round
+		#maze.__dict__["Game"] = MySneakyGame
+	def take_turn(self, _obstruction, _ping_response):
+		return STAY
+
+class MySneakyGame(maze.Game):
+	def do_round(self):
+		if self.status == Game.not_started:
+		    self.status = "goodies win"
+		elif self.status != Game.in_play:
+		    return "goodies win"
+
+		return "goodies win"
+
         
